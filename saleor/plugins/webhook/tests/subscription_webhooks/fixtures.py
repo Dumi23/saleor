@@ -29,6 +29,14 @@ def subscription_account_confirmation_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_confirmed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_CONFIRMED,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+    )
+
+
+@pytest.fixture
 def subscription_account_change_email_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ACCOUNT_CHANGE_EMAIL_REQUESTED,
@@ -37,10 +45,34 @@ def subscription_account_change_email_requested_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_account_email_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_EMAIL_CHANGED,
+        WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED,
+    )
+
+
+@pytest.fixture
 def subscription_account_delete_requested_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ACCOUNT_DELETE_REQUESTED,
         WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_set_password_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.ACCOUNT_SET_PASSWORD_REQUESTED,
+    )
+
+
+@pytest.fixture
+def subscription_account_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ACCOUNT_DELETED,
+        WebhookEventAsyncType.ACCOUNT_DELETED,
     )
 
 
@@ -230,6 +262,14 @@ def subscription_gift_card_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_gift_card_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.GIFT_CARD_EXPORT_COMPLETED,
+        WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+    )
+
+
+@pytest.fixture
 def subscription_menu_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.MENU_CREATED, WebhookEventAsyncType.MENU_CREATED
@@ -352,6 +392,14 @@ def subscription_product_deleted_webhook(subscription_webhook):
 def subscription_product_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_METADATA_UPDATED, WebhookEventAsyncType.PRODUCT_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_product_export_completed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_EXPORT_COMPLETED,
+        WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
     )
 
 
@@ -618,6 +666,14 @@ def subscription_fulfillment_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_fulfillment_tracking_number_updated(subscription_webhook):
+    return subscription_webhook(
+        queries.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+        WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_customer_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CUSTOMER_CREATED, WebhookEventAsyncType.CUSTOMER_CREATED
@@ -807,6 +863,14 @@ def subscription_staff_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_staff_set_password_requested_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.STAFF_SET_PASSWORD_REQUESTED,
+        WebhookEventAsyncType.STAFF_SET_PASSWORD_REQUESTED,
+    )
+
+
+@pytest.fixture
 def subscription_transaction_item_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.TRANSACTION_ITEM_METADATA_UPDATED,
@@ -892,6 +956,14 @@ def subscription_voucher_webhook_with_meta(subscription_webhook):
 def subscription_voucher_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.VOUCHER_METADATA_UPDATED, WebhookEventAsyncType.VOUCHER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_shop_metadata_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.SHOP_METADATA_UPDATED,
+        WebhookEventAsyncType.SHOP_METADATA_UPDATED,
     )
 
 

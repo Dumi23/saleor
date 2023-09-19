@@ -17,6 +17,7 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 - [ ] Inform about the alpha tag - @andrzejewsky
 - [ ] Prepare environments for the new minor and trigger deployments - @cmiacz
 - [ ] Inform about finished deployment - @cmiacz
+- [ ] Add new snapshot for the newest version - @michalina-graczyk
 - [ ] Perform alpha tests migration on staging - @michalina-graczyk
 - [ ] Cypress tests review - @michalina-graczyk
 - [ ] Check the change log and do smoke tests - @michalina-graczyk
@@ -29,3 +30,4 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 - [ ] Inform about approved release PR to the sandbox  - @michalina-graczyk
 - [ ] Merge release PR to the sandbox - @cmiacz
 - [ ] Inform about the stable release (sandbox) - @cmiacz
+- [ ] Bump saleor-platform

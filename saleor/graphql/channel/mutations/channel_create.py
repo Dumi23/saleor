@@ -16,11 +16,16 @@ from ...core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_316,
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_PREVIEW_IN_316_INPUT,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
     DOC_CATEGORY_CHANNELS,
+    DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
 )
 from ...core.mutations import ModelMutation
@@ -36,7 +41,11 @@ from ..enums import (
     TransactionFlowStrategyEnum,
 )
 from ..types import Channel
-from .utils import clean_delete_expired_orders_after, clean_expire_orders_after
+from .utils import (
+    clean_input_checkout_settings,
+    clean_input_order_settings,
+    clean_input_payment_settings,
+)
 
 
 class StockSettingsInput(BaseInputObjectType):
@@ -50,6 +59,26 @@ class StockSettingsInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class CheckoutSettingsInput(BaseInputObjectType):
+    use_legacy_error_flow = graphene.Boolean(
+        description=(
+            "Default `true`. Determines if the checkout mutations should use legacy "
+            "error flow. In legacy flow, all mutations can raise an exception "
+            "unrelated to the requested action - (e.g. out-of-stock exception when "
+            "updating checkoutShippingAddress.) "
+            "If `false`, the errors will be aggregated in `checkout.problems` field. "
+            "Some of the `problems` can block the finalizing checkout process. "
+            "The legacy flow will be removed in Saleor 4.0. "
+            "The flow with `checkout.problems` will be the default one. "
+            + ADDED_IN_315
+            + DEPRECATED_IN_3X_INPUT
+        )
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderSettingsInput(BaseInputObjectType):
@@ -96,12 +125,37 @@ class OrderSettingsInput(BaseInputObjectType):
         description=(
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+            "requested action for the transaction."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+            + DEPRECATED_PREVIEW_IN_316_INPUT
+            + " Use `PaymentSettingsInput.defaultTransactionFlowStrategy` instead."
+        ),
+    )
+    allow_unpaid_orders = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if it is possible to place unpaid order by calling "
+            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
+
+
+class PaymentSettingsInput(BaseInputObjectType):
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=False,
+        description=(
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_316 + PREVIEW_FEATURE
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class ChannelInput(BaseInputObjectType):
@@ -136,6 +190,17 @@ class ChannelInput(BaseInputObjectType):
     private_metadata = common_types.NonNullList(
         MetadataInput,
         description="Channel private metadata." + ADDED_IN_315,
+        required=False,
+    )
+
+    checkout_settings = graphene.Field(
+        CheckoutSettingsInput,
+        description="The channel checkout settings" + ADDED_IN_315 + PREVIEW_FEATURE,
+        required=False,
+    )
+    payment_settings = graphene.Field(
+        PaymentSettingsInput,
+        description="The channel payment settings" + ADDED_IN_316 + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -197,44 +262,13 @@ class ChannelCreate(ModelMutation):
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
         if order_settings := cleaned_input.get("order_settings"):
-            automatically_confirm_all_new_orders = order_settings.get(
-                "automatically_confirm_all_new_orders"
-            )
-            if automatically_confirm_all_new_orders is not None:
-                cleaned_input[
-                    "automatically_confirm_all_new_orders"
-                ] = automatically_confirm_all_new_orders
+            clean_input_order_settings(order_settings, cleaned_input)
 
-            automatically_fulfill_non_shippable_gift_card = order_settings.get(
-                "automatically_fulfill_non_shippable_gift_card"
-            )
-            if automatically_fulfill_non_shippable_gift_card is not None:
-                cleaned_input[
-                    "automatically_fulfill_non_shippable_gift_card"
-                ] = automatically_fulfill_non_shippable_gift_card
-            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
-                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+        if checkout_settings := cleaned_input.get("checkout_settings"):
+            clean_input_checkout_settings(checkout_settings, cleaned_input)
 
-            if "expire_orders_after" in order_settings:
-                expire_orders_after = order_settings["expire_orders_after"]
-                cleaned_input["expire_orders_after"] = clean_expire_orders_after(
-                    expire_orders_after
-                )
-
-            if "delete_expired_orders_after" in order_settings:
-                delete_expired_orders_after = order_settings[
-                    "delete_expired_orders_after"
-                ]
-                cleaned_input[
-                    "delete_expired_orders_after"
-                ] = clean_delete_expired_orders_after(delete_expired_orders_after)
-
-            if default_transaction_strategy := order_settings.get(
-                "default_transaction_flow_strategy"
-            ):
-                cleaned_input[
-                    "default_transaction_flow_strategy"
-                ] = default_transaction_strategy
+        if payment_settings := cleaned_input.get("payment_settings"):
+            clean_input_payment_settings(payment_settings, cleaned_input)
 
         return cleaned_input
 

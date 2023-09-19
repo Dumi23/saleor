@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ...order import models
@@ -67,7 +68,8 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    return bool(kwargs.get("filter", {}).get("search", "").strip())
+    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    return bool(filter_search.strip())
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
@@ -161,7 +163,10 @@ class OrderQueries(graphene.ObjectType):
             "id", id, "external_reference", external_reference
         )
         if not id:
-            id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            try:
+                id = ext_ref_to_global_id_or_error(models.Order, external_reference)
+            except ValidationError:
+                return None
         _, id = from_global_id_or_error(id, Order)
         return resolve_order(info, id)
 

@@ -20,6 +20,7 @@ from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    generate_sale_discount_objects_for_checkout,
     get_products_voucher_discount,
     validate_voucher_for_checkout,
 )
@@ -64,6 +65,7 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     if recalculate_discount:
+        generate_sale_discount_objects_for_checkout(checkout_info, lines)
         recalculate_checkout_discount(manager, checkout_info, lines)
 
     checkout.price_expiration = timezone.now()
@@ -951,7 +953,7 @@ def delete_external_shipping_id(checkout: Checkout):
     metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def get_or_create_checkout_metadata(checkout: "Checkout"):
+def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage
     else:

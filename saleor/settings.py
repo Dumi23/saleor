@@ -193,6 +193,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 PASSWORD_HASHERS = [
     *global_settings.PASSWORD_HASHERS,
     "django.contrib.auth.hashers.BCryptPasswordHasher",
+    "saleor.core.hashers.SHA512Base64PBKDF2PasswordHasher",
 ]
 
 if not SECRET_KEY and DEBUG:
@@ -669,7 +670,7 @@ POPULATE_DEFAULTS = get_bool_from_env("POPULATE_DEFAULTS", True)
 
 
 #  Sentry
-sentry_sdk.utils.MAX_STRING_LENGTH = 4096
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096  # type: ignore[attr-defined]
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 SENTRY_OPTS = {"integrations": [CeleryIntegration(), DjangoIntegration()]}
 
@@ -734,6 +735,17 @@ PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 # for getting response from the server.
 WEBHOOK_TIMEOUT = 10
 WEBHOOK_SYNC_TIMEOUT = 20
+
+# When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
+# if they try to access private IP address ranges, and loopback ranges (unless
+# `HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=False`).
+HTTP_IP_FILTER_ENABLED: bool = get_bool_from_env("HTTP_IP_FILTER_ENABLED", True)
+
+# When `False` it rejects loopback IPs during external calls.
+# Refer to `HTTP_IP_FILTER_ENABLED` for more details.
+HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: bool = get_bool_from_env(
+    "HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS", False
+)
 
 # Since we split checkout complete logic into two separate transactions, in order to
 # mimic stock lock, we apply short reservation for the stocks. The value represents
@@ -821,4 +833,14 @@ WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 # Lock time for request password reset mutation per user (seconds)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
+)
+
+# Lock time for request confirmation email mutation per user
+CONFIRMATION_EMAIL_LOCK_TIME = parse(
+    os.environ.get("CONFIRMATION_EMAIL_LOCK_TIME", "15 minutes")
+)
+
+# Time threshold to update user last_login when performing requests with OAUTH token.
+OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
+    os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
