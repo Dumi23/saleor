@@ -4,6 +4,7 @@ import logging
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import QuerySet
 from graphql import GraphQLError
@@ -14,12 +15,11 @@ from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
+from ...plugins.base_plugin import ExcludedShippingMethod
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
-from ..base_plugin import ExcludedShippingMethod
-from ..const import APP_ID_PREFIX
-from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
-from .tasks import trigger_webhook_sync
+from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
+from .synchronous.transport import trigger_webhook_sync
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ def get_excluded_shipping_methods_or_fetch(
             payload,
             webhook,
             subscribable_object=subscribable_object,
-            timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+            timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         )
         if response_data:
             excluded_methods.extend(
